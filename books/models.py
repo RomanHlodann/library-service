@@ -16,6 +16,8 @@ class Book(models.Model):
         validators=(MinValueValidator(0),)
     )
     daily_fee = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
         validators=(MinValueValidator(0),)
     )
 
