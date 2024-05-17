@@ -136,5 +136,5 @@ AUTH_USER_MODEL = "users.User"
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=25),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "AUTH_HEADER_NAME": "Authorize",
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZE",
 }
