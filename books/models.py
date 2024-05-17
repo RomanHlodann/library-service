@@ -1,3 +1,23 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
-# Create your models here.
+
+class Book(models.Model):
+    class CoverChoices(models.TextChoices):
+        HARD = "hard"
+        SOFT = "soft"
+
+    title = models.CharField(max_length=100)
+    author = models.CharField(max_length=100)
+    cover = models.CharField(
+        max_length=10, choices=CoverChoices
+    )
+    inventory = models.IntegerField(
+        validators=(MinValueValidator(0),)
+    )
+    daily_fee = models.DecimalField(
+        validators=(MinValueValidator(0),)
+    )
+
+    def __str__(self) -> str:
+        return self.title
