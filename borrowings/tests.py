@@ -29,6 +29,13 @@ def get_borrowing_list_url():
     return reverse("borrowings:borrowing-list")
 
 
+def get_borrowing_return_url(pk: int):
+    return reverse(
+        "borrowings:borrowing-return-borrowing",
+        kwargs={"pk": pk}
+    )
+
+
 class BorrowingTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -152,3 +159,61 @@ class BorrowingAuthorizedFilteringViewSetTests(TestCase):
         self.client.force_authenticate(self.other_user)
         res = self.client.get(get_borrowing_list_url() + "?user_id=1")
         self.assertEqual(1, len(res.data))
+
+
+class BorrowingReturnTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_superuser(
+            "user@myproject.com", "password"
+        )
+        self.client.force_authenticate(self.user)
+
+        book_data = sample_book()
+        book_data["inventory"] = 3
+        book = BookSerializer(data=book_data)
+        book.is_valid()
+        book.save()
+
+        borrowings = sample_borrowing()
+        borrowings["book"] = Book.objects.get(title="Test")
+        borrowings["user"] = self.user
+        borrowings.pop("actual_return_date")
+        Borrowing.objects.create(**borrowings)
+
+    def test_borrowing_return(self):
+        return_date = datetime.date.today() + datetime.timedelta(days=10)
+        res = self.client.post(
+            get_borrowing_return_url(1),
+            data={
+                "actual_return_date": return_date
+            }
+        )
+        self.assertEqual(status.HTTP_200_OK, res.status_code)
+        self.assertEqual(str(return_date), res.data["actual_return_date"])
+
+    def test_borrowing_return_twice(self):
+        return_date = datetime.date.today() + datetime.timedelta(days=10)
+        res = None
+        for i in range(2):
+            res = self.client.post(
+                get_borrowing_return_url(1),
+                data={
+                    "actual_return_date": return_date
+                }
+            )
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, res.status_code)
+
+    def test_borrowing_return_not_admin(self):
+        other_user = get_user_model().objects.create_user(
+            "user2@myproject.com", "password"
+        )
+        self.client.force_authenticate(other_user)
+        return_date = datetime.date.today() + datetime.timedelta(days=10)
+        res = self.client.post(
+            get_borrowing_return_url(1),
+            data={
+                "actual_return_date": return_date
+            }
+        )
+        self.assertEqual(status.HTTP_403_FORBIDDEN, res.status_code)
