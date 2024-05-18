@@ -29,6 +29,24 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         """Converts a list of string IDs to a list of integers"""
         return [int(str_id) for str_id in qs.split(",")]
 
+    def get_queryset(self):
+        queryset = Borrowing.objects.select_related("book", "user")
+        if not self.request.user.is_staff:
+            queryset = queryset.filter(user=self.request.user)
+
+        is_active = self.request.query_params.get("is_active")
+        if is_active:
+            is_active = is_active.lower() == "true"
+            queryset = queryset.filter(
+                actual_return_date__isnull=is_active
+            )
+
+        user_ids = self.request.query_params.get("user_id")
+        if self.request.user.is_staff and user_ids:
+            user_ids = self._params_to_ints(user_ids)
+            queryset = queryset.filter(user_id__in=user_ids)
+
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
