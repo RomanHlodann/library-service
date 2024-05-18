@@ -88,3 +88,67 @@ class BorrowingTests(TestCase):
             self.user.id,
             Borrowing.objects.get(id=res.data["id"]).user_id
         )
+
+
+class BorrowingUnauthorizedViewSetTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_unauthorized_request(self):
+        res1 = self.client.get(get_borrowing_list_url())
+        res2 = self.client.post(get_borrowing_list_url(), data={})
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, res1.status_code)
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, res2.status_code)
+
+
+class BorrowingAuthorizedFilteringViewSetTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            "user1@myproject.com", "password"
+        )
+        self.other_user = get_user_model().objects.create_superuser(
+            "user2@myproject.com", "password"
+        )
+        self.client.force_authenticate(self.user)
+
+        book_data = sample_book()
+        book_data["inventory"] = 3
+        book = BookSerializer(data=book_data)
+        book.is_valid()
+        book.save()
+
+        borrowings = sample_borrowing()
+        borrowings["book"] = Book.objects.get(title="Test")
+        borrowings["user"] = self.user
+        borrowings["actual_return_date"] = str(
+            datetime.date.today() + datetime.timedelta(days=5)
+        )
+        Borrowing.objects.create(**borrowings)
+
+        borrowings.pop("actual_return_date")
+        borrowings["user"] = self.other_user
+        Borrowing.objects.create(**borrowings)
+
+    def test_get_borrowings_for_user(self):
+        res = self.client.get(get_borrowing_list_url())
+        self.assertEqual(1, len(res.data))
+
+    def test_get_borrowings_for_admin(self):
+        self.client.force_authenticate(self.other_user)
+        res = self.client.get(get_borrowing_list_url())
+        self.assertEqual(2, len(res.data))
+
+    def test_get_borrowings_with_is_active_filter(self):
+        self.client.force_authenticate(self.other_user)
+        res = self.client.get(get_borrowing_list_url() + "?is_active=True")
+        self.assertEqual(1, len(res.data))
+
+    def test_get_borrowings_with_user_id_filter_as_user(self):
+        res = self.client.get(get_borrowing_list_url() + "?user_id=2")
+        self.assertEqual(1, len(res.data))
+
+    def test_get_borrowings_with_user_id_filter_as_admin(self):
+        self.client.force_authenticate(self.other_user)
+        res = self.client.get(get_borrowing_list_url() + "?user_id=1")
+        self.assertEqual(1, len(res.data))

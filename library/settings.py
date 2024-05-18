@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "books",
     "users",
-    "borrowings"
+    "borrowings",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -129,7 +130,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Library Service API",
+    "DESCRIPTION": "Manage borrowings",
+    "VERSION": "1.0.0",
 }
 
 AUTH_USER_MODEL = "users.User"
