@@ -1,3 +1,5 @@
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
@@ -50,3 +52,22 @@ class BorrowingViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "is_active",
+                type=OpenApiTypes.BOOL,
+                description="Filter by active borrowings (ex. ?is_active=True)",
+            ),
+            OpenApiParameter(
+                "user_id",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by user id, "
+                            "only for admins "
+                            "(ex. ?user_id=2,5)",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
