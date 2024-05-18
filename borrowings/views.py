@@ -10,7 +10,7 @@ from borrowings.serializers import (
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
-    queryset = Borrowing.objects.select_related("book", "user")
+    queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
 
     def get_serializer_class(self):
