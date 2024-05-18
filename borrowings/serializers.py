@@ -1,3 +1,4 @@
+import datetime
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -9,9 +10,9 @@ class BorrowingSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         data = super(BorrowingSerializer, self).validate(attrs=attrs)
         Borrowing.validate_dates(
-            attrs["borrow_date"],
-            attrs["expected_return_date"],
-            attrs["actual_return_date"],
+            datetime.date.today(),
+            data["expected_return_date"],
+            data["actual_return_date"],
             ValidationError
         )
         return data
