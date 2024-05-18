@@ -38,12 +38,17 @@ class Borrowing(models.Model):
             )
 
     def clean(self):
-        Borrowing.validate_dates(
-            self.borrow_date,
-            self.expected_return_date,
-            self.actual_return_date,
-            ValidationError,
-        )
+        borrow_date = self.borrow_date
+        if not borrow_date:
+            borrow_date = datetime.date.today()
+        dates = (self.expected_return_date, self.actual_return_date)
+        for return_date in dates:
+            if return_date:
+                Borrowing.validate_dates(
+                    borrow_date,
+                    return_date,
+                    ValidationError,
+                )
 
     def save(
             self,
