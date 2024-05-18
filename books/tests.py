@@ -83,7 +83,7 @@ class BookViewAuthorizedTests(TestCase):
 
     def test_post_book(self):
         book = sample_book()
-        res = self.client.post(post_book_url(), data=book)
+        res = self.client.post(book_list_url(), data=book)
         self.assertEqual(status.HTTP_403_FORBIDDEN, res.status_code)
 
 
@@ -97,5 +97,5 @@ class BookViewAdminTests(TestCase):
 
     def test_post_book(self):
         book = sample_book()
-        res = self.client.post(post_book_url(), data=book)
+        res = self.client.post(book_list_url(), data=book)
         self.assertEqual(status.HTTP_201_CREATED, res.status_code)
