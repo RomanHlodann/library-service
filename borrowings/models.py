@@ -22,15 +22,16 @@ class Borrowing(models.Model):
             expected_return_date,
             actual_return_date,
             error_to_raise):
-        if borrow_date < expected_return_date:
+        borrow_date = borrow_date or datetime.date.today()
+        if borrow_date > expected_return_date:
             raise error_to_raise(
-                "Borrow date cannot be after expected"
-                f"{borrow_date} < {expected_return_date}"
+                "Borrow date cannot be after expected "
+                f"{borrow_date} > {expected_return_date}"
             )
-        if actual_return_date and borrow_date < actual_return_date:
+        if actual_return_date and borrow_date > actual_return_date:
             raise error_to_raise(
-                "Borrow date cannot be after actual"
-                f"{borrow_date} < {actual_return_date}"
+                "Borrow date cannot be after actual "
+                f"{borrow_date} > {actual_return_date}"
             )
 
     def clean(self):
