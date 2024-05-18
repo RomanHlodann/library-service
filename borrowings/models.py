@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
@@ -32,6 +34,14 @@ class Borrowing(models.Model):
             raise error_to_raise(
                 "Borrow date cannot be after actual "
                 f"{borrow_date} > {actual_return_date}"
+            )
+
+    @staticmethod
+    def validate_inventory(book, error_to_raise):
+        if not book.inventory > 0:
+            raise error_to_raise(
+                "Inventory: 0, you can`t borrow this book. "
+                "Sorry for inconvenience."
             )
 
     def clean(self):
