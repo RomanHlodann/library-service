@@ -21,19 +21,12 @@ class Borrowing(models.Model):
     @staticmethod
     def validate_dates(
             borrow_date,
-            expected_return_date,
-            actual_return_date,
+            return_date,
             error_to_raise):
-        borrow_date = borrow_date or datetime.date.today()
-        if borrow_date > expected_return_date:
+        if borrow_date > return_date:
             raise error_to_raise(
                 "Borrow date cannot be after expected "
-                f"{borrow_date} > {expected_return_date}"
-            )
-        if actual_return_date and borrow_date > actual_return_date:
-            raise error_to_raise(
-                "Borrow date cannot be after actual "
-                f"{borrow_date} > {actual_return_date}"
+                f"{borrow_date} > {return_date}"
             )
 
     @staticmethod
@@ -45,12 +38,17 @@ class Borrowing(models.Model):
             )
 
     def clean(self):
-        Borrowing.validate_dates(
-            self.borrow_date,
-            self.expected_return_date,
-            self.actual_return_date,
-            ValidationError,
-        )
+        borrow_date = self.borrow_date
+        if not borrow_date:
+            borrow_date = datetime.date.today()
+        dates = (self.expected_return_date, self.actual_return_date)
+        for return_date in dates:
+            if return_date:
+                Borrowing.validate_dates(
+                    borrow_date,
+                    return_date,
+                    ValidationError,
+                )
 
     def save(
             self,

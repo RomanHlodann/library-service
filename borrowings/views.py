@@ -1,7 +1,11 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets, status, mixins
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.db import transaction
+from rest_framework.response import Response
 
 from borrowings.models import Borrowing
 from borrowings.serializers import (
@@ -9,10 +13,16 @@ from borrowings.serializers import (
     BorrowingListSerializer,
     BorrowingDetailSerializer,
     BorrowingCreateSerializer,
+    BorrowingReturnSerializer,
 )
 
 
-class BorrowingViewSet(viewsets.ModelViewSet):
+class BorrowingViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
     permission_classes = (IsAuthenticated, )
@@ -24,6 +34,8 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             return BorrowingDetailSerializer
         if self.action == "create":
             return BorrowingCreateSerializer
+        if self.action == "return_borrowing":
+            return BorrowingReturnSerializer
         return self.serializer_class
 
     @staticmethod
@@ -71,3 +83,31 @@ class BorrowingViewSet(viewsets.ModelViewSet):
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="return",
+        permission_classes=(IsAdminUser,),
+    )
+    def return_borrowing(self, request, pk):
+        """Return borrowing endpoint"""
+        with transaction.atomic():
+            borrowing = self.get_object()
+            if borrowing.actual_return_date:
+                raise ValidationError(
+                    "Borrowing was already returned"
+                )
+            book = borrowing.book
+            book.inventory += 1
+            book.save()
+
+            serializer = self.get_serializer(borrowing, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )

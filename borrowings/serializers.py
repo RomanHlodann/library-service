@@ -10,12 +10,20 @@ from books.serializers import BookSerializer
 class BorrowingSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         data = super(BorrowingSerializer, self).validate(attrs=attrs)
-        Borrowing.validate_dates(
-            datetime.date.today(),
+        borrow_date = datetime.date.today()
+        if "borrow_date" in data.keys():
+            borrow_date = data["borrow_date"]
+        dates = (
             data["expected_return_date"],
-            data["actual_return_date"],
-            ValidationError
+            data["actual_return_date"]
         )
+        for return_date in dates:
+            if return_date:
+                Borrowing.validate_dates(
+                    borrow_date,
+                    return_date,
+                    ValidationError,
+                )
         return data
 
     class Meta:
@@ -53,3 +61,18 @@ class BorrowingCreateSerializer(BorrowingSerializer):
         model = Borrowing
         fields = ("id", "borrow_date", "expected_return_date",
                   "actual_return_date", "book")
+
+
+class BorrowingReturnSerializer(BorrowingSerializer):
+    def validate(self, attrs):
+        data = super(BorrowingSerializer, self).validate(attrs=attrs)
+        Borrowing.validate_dates(
+            self.instance.borrow_date,
+            data["actual_return_date"],
+            ValidationError
+        )
+        return data
+
+    class Meta:
+        model = Borrowing
+        fields = ("id", "actual_return_date")
