@@ -70,7 +70,8 @@ class BorrowingViewSet(
             OpenApiParameter(
                 "is_active",
                 type=OpenApiTypes.BOOL,
-                description="Filter by active borrowings (ex. ?is_active=True)",
+                description="Filter by active borrowings "
+                            "(ex. ?is_active=True)",
             ),
             OpenApiParameter(
                 "user_id",
