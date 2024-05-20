@@ -1,5 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
 from borrowings.models import Borrowing
 from borrowings.tasks import send_notification_of_borrow_creation_telegram_bot
 
