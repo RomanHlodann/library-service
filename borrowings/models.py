@@ -22,7 +22,8 @@ class Borrowing(models.Model):
     def validate_dates(
             borrow_date,
             return_date,
-            error_to_raise):
+            error_to_raise
+    ):
         if borrow_date > return_date:
             raise error_to_raise(
                 "Borrow date cannot be after expected "
