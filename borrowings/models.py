@@ -12,17 +12,22 @@ class Borrowing(models.Model):
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(blank=True, null=True)
     book = models.ForeignKey(
-        Book, on_delete=models.CASCADE
+        Book,
+        on_delete=models.CASCADE,
+        related_name="borrowings"
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="borrowings"
     )
 
     @staticmethod
     def validate_dates(
             borrow_date,
             return_date,
-            error_to_raise):
+            error_to_raise
+    ):
         if borrow_date > return_date:
             raise error_to_raise(
                 "Borrow date cannot be after expected "

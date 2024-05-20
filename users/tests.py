@@ -60,4 +60,3 @@ class UserAuthorizerTests(TestCase):
         user_id = res.data["id"]
         user = get_user_model().objects.get(id=user_id)
         self.assertTrue(not user.is_staff)
-
