@@ -195,7 +195,7 @@ class BorrowingReturnTests(TestCase):
     def test_borrowing_return_twice(self):
         return_date = datetime.date.today() + datetime.timedelta(days=10)
         res = None
-        for i in range(2):
+        for _ in range(2):
             res = self.client.post(
                 get_borrowing_return_url(1),
                 data={
