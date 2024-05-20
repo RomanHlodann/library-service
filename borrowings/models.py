@@ -12,10 +12,14 @@ class Borrowing(models.Model):
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(blank=True, null=True)
     book = models.ForeignKey(
-        Book, on_delete=models.CASCADE
+        Book,
+        on_delete=models.CASCADE,
+        related_name="borrowings"
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="borrowings"
     )
 
     @staticmethod
