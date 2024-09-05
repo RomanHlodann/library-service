@@ -12,7 +12,7 @@ def notify_borrowing_created(sender, instance, created, **kwargs):
             f"Created borrowing:\n"
             f"id: {instance.id}\n"
             f"Borrow date: {instance.borrow_date}\n"
-            f"Expected return date {instance.expected_return_date}"
+            f"Expected return date {instance.expected_return_date}\n"
             f"Book: {instance.book.title}\n"
             f"New book inventory: {instance.book.inventory}\n"
             f"By {instance.user.email}"
