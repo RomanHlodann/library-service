@@ -13,9 +13,14 @@ class BorrowingSerializer(serializers.ModelSerializer):
         borrow_date = datetime.date.today()
         if "borrow_date" in data.keys():
             borrow_date = data["borrow_date"]
+
+        actual_return_date = None
+        if "actual_return_date" in data.keys():
+            actual_return_date = data["actual_return_date"]
+
         dates = (
             data["expected_return_date"],
-            data["actual_return_date"]
+            actual_return_date
         )
         for return_date in dates:
             if return_date:
@@ -59,8 +64,7 @@ class BorrowingCreateSerializer(BorrowingSerializer):
 
     class Meta:
         model = Borrowing
-        fields = ("id", "borrow_date", "expected_return_date",
-                  "actual_return_date", "book")
+        fields = ("id", "borrow_date", "expected_return_date", "book")
 
 
 class BorrowingReturnSerializer(BorrowingSerializer):
